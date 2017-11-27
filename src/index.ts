@@ -158,7 +158,7 @@ export interface Snapshot {
 
     findNodeById(id: number): Node | undefined
 }
-;
+
 class SnapshotImpl implements Snapshot{
     idToNodeMapping: Map<number, Node> = new Map()
     _global: Node | undefined
