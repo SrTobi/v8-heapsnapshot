@@ -1,0 +1,28 @@
+{
+  "name": "v8-heapsnapshot",
+  "version": "0.0.1",
+  "description": "Reads a v8 heapsnapshot",
+  "main": "dist/index.js",
+  "scripts": {
+    "watch": "tsc -w -p .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SrTobi/v8-heapsnapshot.git"
+  },
+  "author": "SrTobi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/SrTobi/v8-heapsnapshot/issues"
+  },
+  "homepage": "https://github.com/SrTobi/v8-heapsnapshot#readme",
+  "dependencies": {
+    "@types/node": "^8.0.53",
+    "@types/oboe": "^2.0.28",
+    "oboe": "^2.1.4"
+  },
+  "devDependencies": {
+    "typescript": "^2.6.1"
+  }
+}
