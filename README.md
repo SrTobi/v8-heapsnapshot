@@ -7,15 +7,15 @@ For more information about heapsnapshots see [here](https://developers.google.co
 
 Just add the package `v8-heapsnapshot` to your dependencies.
 
-~~~~~
+`````
 npm install --save v8-heapsnapshot
-~~~~~
+`````
 
 # How to use
 
 JavaScript:
 
-~~~~~{.js}
+`````javascript
 var v8hs = require("v8-heapsnapshot")
 
 v8hs.parseSnapshotFromFile()
@@ -35,12 +35,12 @@ v8hs.parseSnapshotFromFile()
         // find node by id
         snapshot.findNodeById(id)
     })
-~~~~~
+`````
 
 TypeScript:
 
 
-~~~~~{.ts}
+`````typescript
 import {parseSnapshotFromFile} from 'v8-heapsnapshot'
 
 // ...
@@ -61,7 +61,7 @@ snapshot.modules
 
 // find node by id
 snapshot.findNodeById(id)
-~~~~~
+`````
 
 # API
 
@@ -69,17 +69,18 @@ snapshot.findNodeById(id)
 
 Parse the Snapshot with the data already in memory:
 
-~~~~
+`````typescript
 async function parseSnapshot(stream: fs.ReadStream): Promise<Snapshot>
 async function parseSnapshot(json: string): Promise<Snapshot>
 async function parseSnapshot(obj: Object): Promise<Snapshot>
-~~~~
+`````
 
 Read a file and parse the Snapshot:
 
-~~~~
-async function parseSnapshotFromFile(filename: fs.PathLike, options?: /* same option type that fs.createReadStream takes*/): Promise<Snapshot>
-~~~~
+`````typescript
+/* option type is the same as fs.createReadStream's option parameter */
+async function parseSnapshotFromFile(filename: fs.PathLike, options?): Promise<Snapshot>
+`````
 
 ## Work with a Snapshot
 
@@ -87,7 +88,7 @@ A snapshot consists of nodes and edges.
 The node of the global object (name: `global / `) and the list of modules (name: `Module`) are already found.
 Use `findNodeById` to find a node by its id.
 
-~~~~
+`````typescript
 interface Snapshot {
     readonly nodes: Node[]
     readonly edges: Edge[]
@@ -97,11 +98,11 @@ interface Snapshot {
 
     findNodeById(id: number): Node | undefined
 }
-~~~~
+`````
 
 You can then go through the snapshot graph:
 
-~~~~
+`````typescript
 export interface Node {
     readonly type: NodeType
     readonly name: string
@@ -127,5 +128,5 @@ export interface Edge {
 
     toLongString(): string
 }
-~~~~
+`````
 
