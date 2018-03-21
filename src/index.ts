@@ -43,10 +43,19 @@ const metaData: MetaData = {
     "sample_fields":["timestamp_us","last_assigned_id"]
 };
 
+let checkNodeTypes: NodeType = metaData.node_types[0][0 as number];
+let checkEdgeTypes: EdgeType = metaData.edge_types[0][0 as number];
+<any>checkNodeTypes;
+<any>checkEdgeTypes;
+
+
+let warnedAboutChangedHeapFormat = false
+
 function sanityCheck(data: RawSnapshotData) {
     function check<T>(ok: T) {
-        if (!ok) {
-            throw new Error("Heapsnapshot format changed! Please report to https://github.com/SrTobi/v8-heapsnapshot/issues");
+        if (!ok && !warnedAboutChangedHeapFormat) {
+            warnedAboutChangedHeapFormat = true
+            console.error("Heapsnapshot format changed! Please report to https://github.com/SrTobi/v8-heapsnapshot/issues");
         }
     }
 
