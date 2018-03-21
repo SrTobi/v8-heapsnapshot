@@ -1,12 +1,12 @@
 import * as oboe from 'oboe'
 import * as fs from 'fs'
 
-export type NodeType = "hidden" | "array" | "string" | "object" | "code" | "closure" | "regexp" | "number" | "native" | "synthetic" | "concatenated string" | "sliced string"
+export type NodeType = "hidden" | "array" | "string" | "object" | "code" | "closure" | "regexp" | "number" | "native" | "synthetic" | "concatenated string" | "sliced string" | "symbol"
 export type EdgeType = "context" | "element" | "property" | "internal" | "hidden" | "shortcut" | "weak"
 
 interface MetaData {
     readonly node_fields: ["type","name","id","self_size","edge_count","trace_node_id"]
-    readonly node_types: [["hidden","array","string","object","code","closure","regexp","number","native","synthetic","concatenated string","sliced string"],"string","number","number","number","number","number"]
+    readonly node_types: [["hidden","array","string","object","code","closure","regexp","number","native","synthetic","concatenated string","sliced string", "symbol"],"string","number","number","number","number","number"]
     readonly edge_fields: ["type","name_or_index","to_node"]
     readonly edge_types: [["context","element","property","internal","hidden","shortcut","weak"],"string_or_number","node"]
     readonly trace_function_info_fields: ["function_id","name","script_name","script_id","line","column"]
@@ -35,7 +35,7 @@ const EdgeFieldCount = 3
 
 const metaData: MetaData = {
     "node_fields": ["type","name","id","self_size","edge_count","trace_node_id"],
-    "node_types": [["hidden","array","string","object","code","closure","regexp","number","native","synthetic","concatenated string","sliced string"],"string","number","number","number","number","number"],
+    "node_types": [["hidden","array","string","object","code","closure","regexp","number","native","synthetic","concatenated string","sliced string","symbol"],"string","number","number","number","number","number"],
     "edge_fields":["type","name_or_index","to_node"],
     "edge_types":[["context","element","property","internal","hidden","shortcut","weak"],"string_or_number","node"],
     "trace_function_info_fields":["function_id","name","script_name","script_id","line","column"],
@@ -293,7 +293,7 @@ export async function parseSnapshotFromFile(filename: fs.PathLike, options?: str
 }
 
 
-
+/*
 
 async function main() {
     const snapshot = await parseSnapshotFromFile(process.argv[2] || "blub.js.heapsnapshot")
@@ -304,3 +304,5 @@ async function main() {
 }
 
 main()
+
+*/
