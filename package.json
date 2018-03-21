@@ -1,6 +1,6 @@
 {
   "name": "v8-heapsnapshot",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Reads a v8 heapsnapshot",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
