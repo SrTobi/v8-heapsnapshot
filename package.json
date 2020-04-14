@@ -22,9 +22,9 @@
   "dependencies": {
     "@types/node": "^8.0.53",
     "@types/oboe": "^2.0.28",
-    "oboe": "^2.1.4"
+    "oboe": "^2.1.5"
   },
   "devDependencies": {
-    "typescript": "^2.6.1"
+    "typescript": "^3.8.3"
   }
 }
