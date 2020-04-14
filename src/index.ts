@@ -12,6 +12,7 @@ interface MetaData {
     readonly trace_function_info_fields: ["function_id","name","script_name","script_id","line","column"]
     readonly trace_node_fields: ["id","function_info_index","count","size","children"]
     readonly sample_fields: ["timestamp_us","last_assigned_id"]
+    readonly location_fields: ["object_index", "script_id", "line", "column"]
 }
 
 interface RawSnapshotData {
@@ -27,6 +28,7 @@ interface RawSnapshotData {
     readonly trace_function_infos: any[]
     readonly trace_tree: any[]
     readonly samples: any[]
+    readonly location_fields: any[]
 }
 
 const NodeFieldCount = 6
@@ -40,7 +42,8 @@ const metaData: MetaData = {
     "edge_types":[["context","element","property","internal","hidden","shortcut","weak"],"string_or_number","node"],
     "trace_function_info_fields":["function_id","name","script_name","script_id","line","column"],
     "trace_node_fields":["id","function_info_index","count","size","children"],
-    "sample_fields":["timestamp_us","last_assigned_id"]
+    "sample_fields":["timestamp_us","last_assigned_id"],
+    "location_fields": ["object_index", "script_id", "line", "column"],
 };
 
 let checkNodeTypes: NodeType = metaData.node_types[0][0 as number];
@@ -141,7 +144,7 @@ export interface Edge {
     toLongString(): string
 }
 
-class EdgeImpl implements Edge{
+class EdgeImpl implements Edge {
     constructor(
         public readonly type: EdgeType,
         public readonly name: string | number,
@@ -168,7 +171,7 @@ export interface Snapshot {
     findNodeById(id: number): Node | undefined
 }
 
-class SnapshotImpl implements Snapshot{
+class SnapshotImpl implements Snapshot {
     idToNodeMapping: Map<number, Node> = new Map()
     _global: Node | undefined
     _modules: Node[] | undefined
