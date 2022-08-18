@@ -5,7 +5,7 @@ export type NodeType = "hidden" | "array" | "string" | "object" | "code" | "clos
 export type EdgeType = "context" | "element" | "property" | "internal" | "hidden" | "shortcut" | "weak"
 
 interface MetaData {
-    readonly node_fields: ["type","name","id","self_size","edge_count","trace_node_id"]
+    readonly node_fields: ["type","name","id","self_size","edge_count","trace_node_id","detachedness"]
     readonly node_types: [["hidden","array","string","object","code","closure","regexp","number","native","synthetic","concatenated string","sliced string", "symbol", "bigint"],"string","number","number","number","number","number"]
     readonly edge_fields: ["type","name_or_index","to_node"]
     readonly edge_types: [["context","element","property","internal","hidden","shortcut","weak"],"string_or_number","node"]
@@ -31,12 +31,12 @@ interface RawSnapshotData {
     readonly location_fields: any[]
 }
 
-const NodeFieldCount = 6
+const NodeFieldCount = 7
 const EdgeFieldCount = 3
 
 
 const metaData: MetaData = {
-    "node_fields": ["type","name","id","self_size","edge_count","trace_node_id"],
+    "node_fields": ["type","name","id","self_size","edge_count","trace_node_id","detachedness"],
     "node_types": [["hidden","array","string","object","code","closure","regexp","number","native","synthetic","concatenated string","sliced string","symbol", "bigint"],"string","number","number","number","number","number"],
     "edge_fields":["type","name_or_index","to_node"],
     "edge_types":[["context","element","property","internal","hidden","shortcut","weak"],"string_or_number","node"],
@@ -94,6 +94,7 @@ export interface Node {
     readonly self_size: number
     readonly edge_count: number
     readonly trace_node_id: number
+    readonly detachedness: number
 
     readonly out_edges: Edge[]
     readonly in_edges: Edge[]
@@ -109,7 +110,8 @@ class NodeImpl implements Node {
         public readonly id: number,
         public readonly self_size: number,
         public readonly edge_count: number,
-        public readonly trace_node_id: number
+        public readonly trace_node_id: number,
+        public readonly detachedness: number,
     ) {}
 
     out_edges: Edge[] = []
@@ -213,11 +215,12 @@ function parseNodes(data: RawSnapshotData): NodeImpl[] {
     const types = metaData.node_types[0]
     const result: NodeImpl[] = []
     for (let nodeIndex = 0; nodeIndex < data.snapshot.node_count; ++nodeIndex) {
-        let dataIndex = nodeIndex * 6
+        let dataIndex = nodeIndex * NodeFieldCount
         
         const node = new NodeImpl(
             types[nodes[dataIndex++]],
             strings[nodes[dataIndex++]],
+            nodes[dataIndex++],
             nodes[dataIndex++],
             nodes[dataIndex++],
             nodes[dataIndex++],
