@@ -1,0 +1,16 @@
+# This is Git's per-user configuration file.
+[user]
+# Please adapt and uncomment the following lines:
+[alias]
+    sw = switch
+    lol = log --color --graph --pretty=format:'%Cred%h%Creset -%C(auto)%d%Creset %s %C(white)(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+    logp = !git --no-pager lol --max-count=30
+    lola = !git lol --all
+    s = status
+    amend = commit --amend
+[pull]
+    ff = only
+[credential]
+    helper = cache --timeout=30000
+[core]
+    editor = vim

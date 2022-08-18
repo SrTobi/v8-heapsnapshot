@@ -1,0 +1,28 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.209.6/containers/python-3-miniconda
+{
+	"name": "langvil-docker-dev",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	// Set *default* container specific settings.json values on container create.
+	"settings": {},
+	// Add the IDs of extensions you want installed when the container is created.
+	"extensions": [
+		"codezombiech.gitignore",
+		"eamodio.gitlens"
+	],
+	"runArgs": [],
+	//"updateContentCommand": "cd ${containerWorkspaceFolder} && ./install-deps.sh",
+	"containerUser": "ddev",
+	"remoteUser": "ddev",
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postStartCommand": "yarn install"
+	// Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+	// 
+	// "workspaceFolder": "/home/ddev/pic2kcal",
+	// "workspaceMount": "source=${localWorkspaceFolder},target=/home/ddev/pic2kcal,type=bind,consistency=cached",
+	// "mounts": [
+	// 	//"source=${HOME}/.ssh,target=/home/ddev/.ssh,type=bind,consistency=cached"
+	// ]
+}

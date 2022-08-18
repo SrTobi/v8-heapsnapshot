@@ -1,0 +1,29 @@
+# Path to your oh-my-zsh configuration.
+export ZSH="$HOME/.oh-my-zsh"
+ZSH_CUSTOM=`dirname $0`
+
+# Set name of the theme to load.
+# Look in ~/.oh-my-zsh/themes/
+ZSH_THEME="docker"
+
+EDITOR=/usr/bin/vim
+# Example aliases
+# alias zshconfig="mate ~/.zshrc"
+# alias ohmyzsh="mate ~/.oh-my-zsh"
+alias lla="ls -lah --colors"
+alias g=git
+alias hh=hstr
+
+# Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
+# Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
+# Example format: plugins=(rails git textmate ruby lighthouse)
+plugins=(git python)
+
+source $ZSH/oh-my-zsh.sh
+
+export SAVEHIST=10000
+export HISTSIZE=10000
+export PATH=$PATH:$HOME/.local/bin
+export HISTFILE=~/.zsh_history  # ensure history file visibility
+export HH_CONFIG=hicolor        # get more colors
+bindkey -s "\C-r" "\eqhh\n"     # bind hh to Ctrl-r (for Vi mode check doc)
