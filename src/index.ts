@@ -290,15 +290,16 @@ export async function parseSnapshot(arg1: any): Promise<Snapshot> {
     return new SnapshotImpl(nodes, edges)
 }
 
-export async function parseSnapshotFromFile(filename: fs.PathLike, options?: string | {
-    flags?: string;
-    encoding?: string;
-    fd?: number;
-    mode?: number;
-    autoClose?: boolean;
-    start?: number;
-    end?: number;
-    highWaterMark?: number;
+export async function parseSnapshotFromFile(filename: fs.PathLike, options?: BufferEncoding | {
+    flags?: string | undefined;
+    encoding?: BufferEncoding | undefined;
+    fd?: number | fs.promises.FileHandle | undefined;
+    mode?: number | undefined;
+    autoClose?: boolean | undefined;
+    emitClose?: boolean | undefined;
+    start?: number | undefined;
+    highWaterMark?: number | undefined;
+    end?: number | undefined;
 }): Promise<Snapshot> {
     const stream = fs.createReadStream(filename, options);
     return await parseSnapshot(stream);
