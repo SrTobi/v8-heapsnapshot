@@ -90,6 +90,9 @@ Use `findNodeById` to find a node by its id.
 
 `````typescript
 interface Snapshot {
+    // Whether the field detached is present in Node
+    readonly hasDetachedness: boolean
+
     readonly nodes: Node[]
     readonly edges: Edge[]
 
@@ -110,6 +113,10 @@ export interface Node {
     readonly self_size: number
     readonly edge_count: number
     readonly trace_node_id: number
+
+    // Indicates whether the node is unreachable from the window object.
+    // Might be undefined on older heap snapshots.
+    readonly detached?: boolean
 
     readonly out_edges: Edge[]
     readonly in_edges: Edge[]

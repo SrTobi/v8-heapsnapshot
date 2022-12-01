@@ -4,9 +4,11 @@ import * as fs from 'fs'
 export type NodeType = "hidden" | "array" | "string" | "object" | "code" | "closure" | "regexp" | "number" | "native" | "synthetic" | "concatenated string" | "sliced string" | "symbol" | "bigint"
 export type EdgeType = "context" | "element" | "property" | "internal" | "hidden" | "shortcut" | "weak"
 
+type NodeTypeTypes = ["hidden", "array", "string", "object", "code", "closure", "regexp", "number", "native", "synthetic", "concatenated string", "sliced string", "symbol", "bigint"];
+
 interface MetaData {
-    readonly node_fields: ["type","name","id","self_size","edge_count","trace_node_id","detachedness"]
-    readonly node_types: [["hidden","array","string","object","code","closure","regexp","number","native","synthetic","concatenated string","sliced string", "symbol", "bigint"],"string","number","number","number","number","number"]
+    readonly node_fields: ["type","name","id","self_size","edge_count","trace_node_id"] | ["type","name","id","self_size","edge_count","trace_node_id","detachedness"]
+    readonly node_types: [NodeTypeTypes,"string","number","number","number","number"] | [NodeTypeTypes,"string","number","number","number","number","number"]
     readonly edge_fields: ["type","name_or_index","to_node"]
     readonly edge_types: [["context","element","property","internal","hidden","shortcut","weak"],"string_or_number","node"]
     readonly trace_function_info_fields: ["function_id","name","script_name","script_id","line","column"]
@@ -31,13 +33,22 @@ interface RawSnapshotData {
     readonly location_fields: any[]
 }
 
-const NodeFieldCount = 7
+function hasDetachedness(data: RawSnapshotData): boolean {
+    return data.snapshot.meta.node_fields.length == 7
+}
+
+function nodeFieldCount(data: RawSnapshotData) {
+    return hasDetachedness(data) ? 7 : 6;
+}
+
 const EdgeFieldCount = 3
 
 
-const metaData: MetaData = {
-    "node_fields": ["type","name","id","self_size","edge_count","trace_node_id","detachedness"],
-    "node_types": [["hidden","array","string","object","code","closure","regexp","number","native","synthetic","concatenated string","sliced string","symbol", "bigint"],"string","number","number","number","number","number"],
+const nodeTypeTypes: NodeTypeTypes = ["hidden", "array", "string", "object", "code", "closure", "regexp", "number", "native", "synthetic", "concatenated string", "sliced string", "symbol", "bigint"];
+
+const metaDataWithoutDetachedness: MetaData = {
+    "node_fields": ["type","name","id","self_size","edge_count","trace_node_id"],
+    "node_types": [nodeTypeTypes,"string","number","number","number","number"],
     "edge_fields":["type","name_or_index","to_node"],
     "edge_types":[["context","element","property","internal","hidden","shortcut","weak"],"string_or_number","node"],
     "trace_function_info_fields":["function_id","name","script_name","script_id","line","column"],
@@ -46,10 +57,34 @@ const metaData: MetaData = {
     "location_fields": ["object_index", "script_id", "line", "column"],
 };
 
-let checkNodeTypes: NodeType = metaData.node_types[0][0 as number];
-let checkEdgeTypes: EdgeType = metaData.edge_types[0][0 as number];
-<any>checkNodeTypes;
-<any>checkEdgeTypes;
+{
+    let checkNodeTypes: NodeType = metaDataWithoutDetachedness.node_types[0][0 as number];
+    let checkEdgeTypes: EdgeType = metaDataWithoutDetachedness.edge_types[0][0 as number];
+    <any>checkNodeTypes;
+    <any>checkEdgeTypes;
+}
+
+const metaDataWithDetachedness: MetaData = {
+    "node_fields": ["type","name","id","self_size","edge_count","trace_node_id","detachedness"],
+    "node_types": [nodeTypeTypes,"string","number","number","number","number","number"],
+    "edge_fields":["type","name_or_index","to_node"],
+    "edge_types":[["context","element","property","internal","hidden","shortcut","weak"],"string_or_number","node"],
+    "trace_function_info_fields":["function_id","name","script_name","script_id","line","column"],
+    "trace_node_fields":["id","function_info_index","count","size","children"],
+    "sample_fields":["timestamp_us","last_assigned_id"],
+    "location_fields": ["object_index", "script_id", "line", "column"],
+};
+
+{
+    let checkNodeTypes: NodeType = metaDataWithDetachedness.node_types[0][0 as number];
+    let checkEdgeTypes: EdgeType = metaDataWithDetachedness.edge_types[0][0 as number];
+    <any>checkNodeTypes;
+    <any>checkEdgeTypes;
+}
+
+function metaData(data: RawSnapshotData): MetaData {
+    return hasDetachedness(data) ? metaDataWithDetachedness : metaDataWithoutDetachedness;
+}
 
 
 let warnedAboutChangedHeapFormat = false
@@ -78,8 +113,8 @@ function sanityCheck(data: RawSnapshotData) {
 
     check(ss.meta)
     const meta = ss.meta
-    check(JSON.stringify(meta) === JSON.stringify(metaData));
-    check(meta.node_fields.length == NodeFieldCount)
+    check(JSON.stringify(meta) === JSON.stringify(metaData(data)));
+    check(meta.node_fields.length == nodeFieldCount(data))
     check(meta.edge_fields.length == EdgeFieldCount)
     check(ss.node_count * meta.node_fields.length == data.nodes.length)
     check(ss.edge_count * meta.edge_fields.length == data.edges.length)
@@ -94,7 +129,7 @@ export interface Node {
     readonly self_size: number
     readonly edge_count: number
     readonly trace_node_id: number
-    readonly detachedness: number
+    readonly detached?: boolean
 
     readonly out_edges: Edge[]
     readonly in_edges: Edge[]
@@ -111,7 +146,7 @@ class NodeImpl implements Node {
         public readonly self_size: number,
         public readonly edge_count: number,
         public readonly trace_node_id: number,
-        public readonly detachedness: number,
+        public readonly detached?: boolean,
     ) {}
 
     out_edges: Edge[] = []
@@ -170,6 +205,8 @@ export interface Snapshot {
     readonly global: Node
     readonly modules: Node[]
 
+    readonly hasDetachedness: boolean
+
     findNodeById(id: number): Node | undefined
 }
 
@@ -180,7 +217,8 @@ class SnapshotImpl implements Snapshot {
 
     constructor(
         public nodes: Node[],
-        public edges: Edge[]
+        public edges: Edge[],
+        public hasDetachedness: boolean,
     ) {
         nodes.forEach(node => this.idToNodeMapping.set(node.id, node))
     }
@@ -212,10 +250,13 @@ class SnapshotImpl implements Snapshot {
 function parseNodes(data: RawSnapshotData): NodeImpl[] {
     const nodes = data.nodes
     const strings = data.strings
-    const types = metaData.node_types[0]
+    const types = metaData(data).node_types[0]
     const result: NodeImpl[] = []
+    const hasDetachedness_ = hasDetachedness(data)
+    const nodeFieldCount_ = nodeFieldCount(data)
+
     for (let nodeIndex = 0; nodeIndex < data.snapshot.node_count; ++nodeIndex) {
-        let dataIndex = nodeIndex * NodeFieldCount
+        let dataIndex = nodeIndex * nodeFieldCount_
         
         const node = new NodeImpl(
             types[nodes[dataIndex++]],
@@ -224,7 +265,7 @@ function parseNodes(data: RawSnapshotData): NodeImpl[] {
             nodes[dataIndex++],
             nodes[dataIndex++],
             nodes[dataIndex++],
-            nodes[dataIndex++],
+            hasDetachedness_ ? (nodes[dataIndex++] == 1) : undefined,
         )
         result.push(node)
     }
@@ -235,7 +276,7 @@ function parseAndWireEdges(data: RawSnapshotData, nodes: NodeImpl[]): Edge[] {
     const result: Edge[] = []
     const edges = data.edges
     const strings = data.strings
-    const types = metaData.edge_types[0]
+    const types = metaDataWithoutDetachedness.edge_types[0]
 
     function name_or_index(type: EdgeType, i: number): number | string {
         if (type == "element" || type == "hidden") {
@@ -247,12 +288,13 @@ function parseAndWireEdges(data: RawSnapshotData, nodes: NodeImpl[]): Edge[] {
         return strings[i]
     }
 
+    const nodeFieldCount_ = nodeFieldCount(data)
     let edgeIndex = 0
     nodes.forEach((from_node, nodeIndex) => {
         for (let edgeCount = 0; edgeCount < from_node.edge_count; ++edgeCount) {
             const type = types[edges[edgeIndex++]]
             const name = name_or_index(type, edges[edgeIndex++])
-            const to_node = nodes[edges[edgeIndex++] / NodeFieldCount]
+            const to_node = nodes[edges[edgeIndex++] / nodeFieldCount_]
 
             const edge = new EdgeImpl(type, name, from_node, to_node)
             result.push(edge)
@@ -290,7 +332,7 @@ export async function parseSnapshot(arg1: any): Promise<Snapshot> {
     const nodes = parseNodes(data)
     const edges = parseAndWireEdges(data, nodes)
 
-    return new SnapshotImpl(nodes, edges)
+    return new SnapshotImpl(nodes, edges, hasDetachedness(data))
 }
 
 export async function parseSnapshotFromFile(filename: fs.PathLike, options?: BufferEncoding | {
