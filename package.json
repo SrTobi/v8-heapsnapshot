@@ -1,6 +1,6 @@
 {
   "name": "v8-heapsnapshot",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Reads a v8 heapsnapshot",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -20,11 +20,11 @@
   },
   "homepage": "https://github.com/SrTobi/v8-heapsnapshot",
   "dependencies": {
-    "@types/node": "^18.7.6",
+    "@types/node": "^18.11.10",
     "@types/oboe": "^2.1.1",
     "oboe": "^2.1.5"
   },
   "devDependencies": {
-    "typescript": "^4.7.4"
+    "typescript": "^4.9.3"
   }
 }
