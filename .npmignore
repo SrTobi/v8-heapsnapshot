@@ -8,6 +8,9 @@ yarn-error.log*
 # Runtime data
 *.heapsnapshot
 
+# ignore vscode
+.vscode
+
 # Output dir
 dist/
 
@@ -36,3 +39,6 @@ jspm_packages/
 # ignore ts stuff
 src/
 /tsconfig.json
+
+#dev container
+.devcontainer
