@@ -6,9 +6,9 @@ export type EdgeType = "context" | "element" | "property" | "internal" | "hidden
 
 type NodeTypeTypes = ["hidden", "array", "string", "object", "code", "closure", "regexp", "number", "native", "synthetic", "concatenated string", "sliced string", "symbol", "bigint"];
 
-interface MetaData {
-    readonly node_fields: ["type","name","id","self_size","edge_count","trace_node_id"] | ["type","name","id","self_size","edge_count","trace_node_id","detachedness"]
-    readonly node_types: [NodeTypeTypes,"string","number","number","number","number"] | [NodeTypeTypes,"string","number","number","number","number","number"]
+type MetaData = {
+    readonly node_fields: ["type","name","id","self_size","edge_count","trace_node_id","detachedness"?]
+    readonly node_types: [NodeTypeTypes,"string","number","number","number","number","number"?]
     readonly edge_fields: ["type","name_or_index","to_node"]
     readonly edge_types: [["context","element","property","internal","hidden","shortcut","weak"],"string_or_number","node"]
     readonly trace_function_info_fields: ["function_id","name","script_name","script_id","line","column"]
@@ -17,7 +17,7 @@ interface MetaData {
     readonly location_fields: ["object_index", "script_id", "line", "column"]
 }
 
-interface RawSnapshotData {
+type RawSnapshotData = {
     readonly snapshot: {
         readonly meta: MetaData
         readonly node_count: number
@@ -27,100 +27,167 @@ interface RawSnapshotData {
     readonly nodes: number[]
     readonly edges: number[]
     readonly strings: string[]
-    readonly trace_function_infos: any[]
-    readonly trace_tree: any[]
-    readonly samples: any[]
-    readonly location_fields: any[]
+    readonly trace_function_infos: unknown[]
+    readonly trace_tree: unknown[]
+    readonly samples: unknown[]
+    readonly location_fields: unknown[]
 }
 
 function hasDetachedness(data: RawSnapshotData): boolean {
-    return data.snapshot.meta.node_fields.length == 7
+    return data.snapshot.meta.node_fields.length >= 7
 }
 
-function nodeFieldCount(data: RawSnapshotData) {
-    return hasDetachedness(data) ? 7 : 6;
+interface ParseInfo {
+    nodeFieldCount: number,
+    edgeFieldCount: number,
 }
 
-const EdgeFieldCount = 3
-
-
-const nodeTypeTypes: NodeTypeTypes = ["hidden", "array", "string", "object", "code", "closure", "regexp", "number", "native", "synthetic", "concatenated string", "sliced string", "symbol", "bigint"];
-
-const metaDataWithoutDetachedness: MetaData = {
-    "node_fields": ["type","name","id","self_size","edge_count","trace_node_id"],
-    "node_types": [nodeTypeTypes,"string","number","number","number","number"],
-    "edge_fields":["type","name_or_index","to_node"],
-    "edge_types":[["context","element","property","internal","hidden","shortcut","weak"],"string_or_number","node"],
-    "trace_function_info_fields":["function_id","name","script_name","script_id","line","column"],
-    "trace_node_fields":["id","function_info_index","count","size","children"],
-    "sample_fields":["timestamp_us","last_assigned_id"],
-    "location_fields": ["object_index", "script_id", "line", "column"],
-};
-
-{
-    let checkNodeTypes: NodeType = metaDataWithoutDetachedness.node_types[0][0 as number];
-    let checkEdgeTypes: EdgeType = metaDataWithoutDetachedness.edge_types[0][0 as number];
-    <any>checkNodeTypes;
-    <any>checkEdgeTypes;
+function parseInfoFromSnapshot(data: RawSnapshotData): ParseInfo {
+    return {
+        nodeFieldCount: data.snapshot.meta.node_fields.length,
+        edgeFieldCount: data.snapshot.meta.edge_fields.length,
+    };
 }
 
-const metaDataWithDetachedness: MetaData = {
-    "node_fields": ["type","name","id","self_size","edge_count","trace_node_id","detachedness"],
-    "node_types": [nodeTypeTypes,"string","number","number","number","number","number"],
-    "edge_fields":["type","name_or_index","to_node"],
-    "edge_types":[["context","element","property","internal","hidden","shortcut","weak"],"string_or_number","node"],
-    "trace_function_info_fields":["function_id","name","script_name","script_id","line","column"],
-    "trace_node_fields":["id","function_info_index","count","size","children"],
-    "sample_fields":["timestamp_us","last_assigned_id"],
-    "location_fields": ["object_index", "script_id", "line", "column"],
-};
+namespace Sanity {
+    class Optional<T> {
+        constructor(public readonly value: T) { }
+    }
 
-{
-    let checkNodeTypes: NodeType = metaDataWithDetachedness.node_types[0][0 as number];
-    let checkEdgeTypes: EdgeType = metaDataWithDetachedness.edge_types[0][0 as number];
-    <any>checkNodeTypes;
-    <any>checkEdgeTypes;
-}
+    function opt<T>(x: T): Optional<T> {
+        return new Optional(x)
+    }
 
-function metaData(data: RawSnapshotData): MetaData {
-    return hasDetachedness(data) ? metaDataWithDetachedness : metaDataWithoutDetachedness;
-}
+    type Exclude<T, U> = T extends U ? never : T;
 
+    type UndefinedAsOptional<T> =
+        [undefined] extends [T] ? Optional<Exclude<T, undefined>> :
+        T extends string? T :
+        //T extends unknown[] ? { [Idx in keyof T]: UndefinedAsOptional<T[Idx]> } :
+        {
+            [Property in keyof T]-?: UndefinedAsOptional<T[Property]>
+        };
 
-let warnedAboutChangedHeapFormat = false
+    const nodeTypeTypesProto: UndefinedAsOptional<NodeTypeTypes> = ["hidden", "array", "string", "object", "code", "closure", "regexp", "number", "native", "synthetic", "concatenated string", "sliced string", "symbol", "bigint"];
 
-function sanityCheck(data: RawSnapshotData) {
-    function check<T>(ok: T) {
-        if (!ok && !warnedAboutChangedHeapFormat) {
-            warnedAboutChangedHeapFormat = true
-            console.error("Heapsnapshot format changed! Please report to https://github.com/SrTobi/v8-heapsnapshot/issues");
+    const metaDataProto: UndefinedAsOptional<MetaData> = {
+        "node_fields": ["type", "name", "id", "self_size", "edge_count", "trace_node_id", opt("detachedness")],
+        "node_types": [nodeTypeTypesProto, "string", "number", "number", "number", "number", opt("number")],
+        "edge_fields": ["type", "name_or_index", "to_node"],
+        "edge_types": [["context", "element", "property", "internal", "hidden", "shortcut", "weak"], "string_or_number", "node"],
+        "trace_function_info_fields": ["function_id", "name", "script_name", "script_id", "line", "column"],
+        "trace_node_fields": ["id", "function_info_index", "count", "size", "children"],
+        "sample_fields": ["timestamp_us", "last_assigned_id"],
+        "location_fields": ["object_index", "script_id", "line", "column"],
+    };
+
+    function assertX(desc: string, cond: boolean) {
+        if (!cond) {
+            throw new Error(desc)
+        }
+    }
+    function assertObject(path: string, x: unknown) {
+        assertX(`${path} is not an object, but is ${typeof x}`, typeof x === "object")
+    }
+
+    function assertArray<T>(path: string, arr: T[]) {
+        assertX(`${path} is not an array, but is '${typeof arr}'`, Array.isArray(arr))
+    }
+
+    function assertInteger(path: string, n: number) {
+        assertX(`${path} is not an integer, but is '${typeof n}'`, Number.isInteger(n))
+    }
+
+    function assertLength(name: string, len: number, expectedLen: number) {
+        if (len !== expectedLen) {
+            throw new Error(`But Expected ${expectedLen} ${name}, but got ${len}`)
         }
     }
 
-    check(data)
+    type GenericMetaData<Additionals> = GenericMetaData<Additionals>[] | string | { readonly [p: string]: GenericMetaData<Additionals> } | Additionals;
 
-    check(Array.isArray(data.nodes))
-    check(Array.isArray(data.edges))
-    check(Array.isArray(data.strings))
-    check(Array.isArray(data.trace_function_infos))
-    check(Array.isArray(data.trace_tree))
-    check(Array.isArray(data.samples))
+    function checkMetaData<T>(path: string, data: GenericMetaData<undefined>, proto: GenericMetaData<Optional<string>>): boolean {
+        let ok = true;
+        if (proto instanceof Optional) {
+            if (data !== undefined) {
+                ok = checkMetaData(path, data, proto.value)
+            }
+        } else if (typeof proto === "string") {
+            if (proto !== data) {
+                console.warn(`Expected '${path}' to be '${proto}' but was '${data}'!`)
+                ok = false
+            }
+        } else if (Array.isArray(proto)) {
+            if (!Array.isArray(data)) {
+                console.warn(`Expected '${path}' to be an array but was ${JSON.stringify(data)}!`)
+                return false
+            }
+            if (data.length > proto.length) {
+                console.warn(`Array at '${path}' has ${data.length - proto.length} new element!`)
 
-    const ss = data.snapshot
-    check(Number.isInteger(ss.node_count))
-    check(Number.isInteger(ss.edge_count))
-    check(Number.isInteger(ss.trace_function_count))
+                for (let idx = proto.length; idx < data.length; ++idx) {
+                    console.warn(`- At index ${idx}: ${JSON.stringify(data[idx])}`)
+                }
 
-    check(ss.meta)
-    const meta = ss.meta
-    check(JSON.stringify(meta) === JSON.stringify(metaData(data)));
-    check(meta.node_fields.length == nodeFieldCount(data))
-    check(meta.edge_fields.length == EdgeFieldCount)
-    check(ss.node_count * meta.node_fields.length == data.nodes.length)
-    check(ss.edge_count * meta.edge_fields.length == data.edges.length)
-    check(ss.trace_function_count * meta.trace_function_info_fields.length == data.trace_function_infos.length)
+                ok = false
+            }
+            
+            for (let idx = 0; idx < proto.length; ++idx) {
+                ok = checkMetaData(`${path}[${idx}]`, data[idx], proto[idx]) && ok
+            }
+        } else {
+            if (Array.isArray(data) || typeof data !== "object") {
+                console.warn(`Expected '${path}' to be an object but was ${JSON.stringify(data)}!`)
+                return false
+            }
+            for (let prop in proto) {
+                ok = checkMetaData(`${path}.${prop}`, data[prop], proto[prop]) && ok
+            }
+        }
+
+        return ok
+    }
+
+    export function check(data: RawSnapshotData) {
+        // assert root
+        assertObject("data", data)
+
+        // assert root properties
+        assertArray("data.nodes", data.nodes)
+        assertArray("data.edges", data.edges)
+        assertArray("data.strings", data.strings)
+        assertArray("data.trace_function_infos", data.trace_function_infos)
+        assertArray("data.trace_tree", data.trace_tree)
+        assertArray("data.samples", data.samples)
+
+        // assert snapshot
+        const snapshot = data.snapshot
+        assertInteger("data.snapshot.node_count", snapshot.node_count)
+        assertInteger("data.snapshot.edge_count", snapshot.edge_count)
+        assertInteger("data.snapshot.trace_function_count", snapshot.trace_function_count)
+
+        const meta = snapshot.meta
+        assertObject("data.snapshot.meta", snapshot.meta)
+        assertX("data.snapshot.meta.node_fields must have same length as data.snapshot.meta.node_types", meta.node_fields.length == meta.node_types.length)
+        assertX("data.snapshot.meta.edge_fields must have same length as data.snapshot.meta.edge_types", meta.edge_fields.length == meta.edge_types.length)
+
+        // assert ParseInfo
+        const parseInfo = parseInfoFromSnapshot(data);
+        assertX(`expected at least 6 node fields, but got ${parseInfo.nodeFieldCount}`, parseInfo.nodeFieldCount >= 6)
+        assertLength("edge fields", parseInfo.edgeFieldCount, 3)
+
+        const ok = checkMetaData("data.snapshot.meta", meta, metaDataProto)
+        if (!ok) {
+            console.error("Heapsnapshot format changed! Please report to https://github.com/SrTobi/v8-heapsnapshot/issues");
+            console.error("Continuing anyway... :)")
+        }
+
+        // assert elemnt counts
+        assertLength("node elements", data.nodes.length, snapshot.node_count * meta.node_fields.length)
+        assertLength("edge elements", data.edges.length, snapshot.edge_count * meta.edge_fields.length)
+        assertLength("trace function elements", data.trace_function_infos.length, snapshot.trace_function_count * meta.trace_function_info_fields.length)
+    }
 }
-
 
 export interface Node {
     readonly type: NodeType
@@ -246,37 +313,40 @@ class SnapshotImpl implements Snapshot {
     }
 }
 
+function access<T>(arr: number[], idx: number, baseIdx: number, length: number, f: (num: number) => T): T | undefined {
+    return (idx - baseIdx) < length ? f(arr[idx]) : undefined;
+}
 
-function parseNodes(data: RawSnapshotData): NodeImpl[] {
+function parseNodes(data: RawSnapshotData, parseInfo: ParseInfo): NodeImpl[] {
     const nodes = data.nodes
     const strings = data.strings
-    const types = metaData(data).node_types[0]
+    const types = data.snapshot.meta.node_types[0]
     const result: NodeImpl[] = []
-    const hasDetachedness_ = hasDetachedness(data)
-    const nodeFieldCount_ = nodeFieldCount(data)
+    const nodeFieldCount = parseInfo.nodeFieldCount;
 
     for (let nodeIndex = 0; nodeIndex < data.snapshot.node_count; ++nodeIndex) {
-        let dataIndex = nodeIndex * nodeFieldCount_
+        const baseIndex = nodeIndex * nodeFieldCount
+        let dataIndex = baseIndex
         
         const node = new NodeImpl(
-            types[nodes[dataIndex++]],
+            types[nodes[dataIndex++]]!,
             strings[nodes[dataIndex++]],
             nodes[dataIndex++],
             nodes[dataIndex++],
             nodes[dataIndex++],
             nodes[dataIndex++],
-            hasDetachedness_ ? (nodes[dataIndex++] == 1) : undefined,
+            access(nodes, dataIndex++, baseIndex, nodeFieldCount, num => num == 1),
         )
         result.push(node)
     }
     return result
 }
 
-function parseAndWireEdges(data: RawSnapshotData, nodes: NodeImpl[]): Edge[] {
+function parseAndWireEdges(data: RawSnapshotData, nodes: NodeImpl[], parseInfo: ParseInfo): Edge[] {
     const result: Edge[] = []
     const edges = data.edges
     const strings = data.strings
-    const types = metaDataWithoutDetachedness.edge_types[0]
+    const types = data.snapshot.meta.edge_types[0]
 
     function name_or_index(type: EdgeType, i: number): number | string {
         if (type == "element" || type == "hidden") {
@@ -288,13 +358,13 @@ function parseAndWireEdges(data: RawSnapshotData, nodes: NodeImpl[]): Edge[] {
         return strings[i]
     }
 
-    const nodeFieldCount_ = nodeFieldCount(data)
+    const nodeFieldCount = parseInfo.nodeFieldCount;
     let edgeIndex = 0
-    nodes.forEach((from_node, nodeIndex) => {
+    nodes.forEach((from_node) => {
         for (let edgeCount = 0; edgeCount < from_node.edge_count; ++edgeCount) {
             const type = types[edges[edgeIndex++]]
             const name = name_or_index(type, edges[edgeIndex++])
-            const to_node = nodes[edges[edgeIndex++] / nodeFieldCount_]
+            const to_node = nodes[edges[edgeIndex++] / nodeFieldCount]
 
             const edge = new EdgeImpl(type, name, from_node, to_node)
             result.push(edge)
@@ -327,10 +397,11 @@ export async function parseSnapshot(arg1: any): Promise<Snapshot> {
         throw new Error("Illigal snapshot data!")
     }
     
-    sanityCheck(data)
+    Sanity.check(data)
 
-    const nodes = parseNodes(data)
-    const edges = parseAndWireEdges(data, nodes)
+    const parseInfo = parseInfoFromSnapshot(data)
+    const nodes = parseNodes(data, parseInfo)
+    const edges = parseAndWireEdges(data, nodes, parseInfo)
 
     return new SnapshotImpl(nodes, edges, hasDetachedness(data))
 }
@@ -351,9 +422,10 @@ export async function parseSnapshotFromFile(filename: fs.PathLike, options?: Buf
 }
 
 
-/*
+
 
 async function main() {
+    console.log("Run...")
     const snapshot = await parseSnapshotFromFile(process.argv[2] || "blub.js.heapsnapshot")
     console.log("nodes:", snapshot.nodes.length)
     console.log("edges:", snapshot.edges.length)
@@ -363,4 +435,4 @@ async function main() {
 
 main()
 
-*/
+
