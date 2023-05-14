@@ -15,7 +15,9 @@ export type NodeType =
   | "concatenated string"
   | "sliced string"
   | "symbol"
-  | "bigint";
+  | "bigint"
+  | "object shape"
+  | "wasm object";
 export type EdgeType =
   | "context"
   | "element"
@@ -39,7 +41,9 @@ type NodeTypeTypes = [
   "concatenated string",
   "sliced string",
   "symbol",
-  "bigint"
+  "bigint",
+  "object shape"?,
+  "wasm object"?
 ];
 
 type MetaData = {
@@ -160,6 +164,8 @@ namespace Sanity {
     "sliced string",
     "symbol",
     "bigint",
+    opt("object shape"),
+    opt("wasm object"),
   ];
 
   const metaDataProto: UndefinedAsOptional<MetaData> = {
