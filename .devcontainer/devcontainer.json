@@ -10,7 +10,8 @@
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
 		"codezombiech.gitignore",
-		"eamodio.gitlens"
+		"eamodio.gitlens",
+		"esbenp.prettier-vscode"
 	],
 	"runArgs": [],
 	//"updateContentCommand": "cd ${containerWorkspaceFolder} && ./install-deps.sh",
