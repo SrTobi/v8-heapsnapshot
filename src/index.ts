@@ -624,7 +624,7 @@ export async function parseSnapshotFromFile(
   return await parseSnapshot(stream);
 }
 
-async function main() {
+/*async function main() {
   console.log("Run...");
   const snapshot = await parseSnapshotFromFile(
     process.argv[2] || "blub.js.heapsnapshot"
@@ -636,3 +636,4 @@ async function main() {
 }
 
 main();
+*/
