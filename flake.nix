@@ -10,7 +10,7 @@
           pkgs = import nixpkgs {
             inherit system;
           };
-          buildInputs = with pkgs; [ yarn openssl ];
+          buildInputs = with pkgs; [ pnpm openssl nodejs_25 ];
         in
         with pkgs;
         {

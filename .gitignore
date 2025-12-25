@@ -1,12 +1,13 @@
+# Runtime data
+*.heapsnapshot
+!test-snapshots/*.heapsnapshot
+
 # Logs
 logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
-# Runtime data
-*.heapsnapshot
 
 # Output dir
 dist/
