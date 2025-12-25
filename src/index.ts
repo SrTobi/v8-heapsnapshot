@@ -1,4 +1,4 @@
-import * as oboe from "oboe";
+import * as streamObject from "stream-json/streamers/StreamObject";
 import * as fs from "fs";
 
 export type NodeType =
@@ -587,7 +587,20 @@ export async function parseSnapshot(arg1: any): Promise<Snapshot> {
     data = JSON.parse(arg1) as RawSnapshotData;
   } else if (arg1 instanceof fs.ReadStream) {
     data = await new Promise<RawSnapshotData>((resolve, reject) => {
-      oboe(arg1).node("!", resolve).fail(reject);
+      arg1.on("error", (err) => {
+        reject(err);
+      });
+      let p = arg1.pipe(streamObject.withParser());
+      let result: any = {};
+      p.on("error", (err) => {
+        reject(err);
+      });
+      p.on("data", (data) => {
+        result[data.key] = data.value;
+      });
+      p.on("end", () => {
+        resolve(result as RawSnapshotData);
+      });
     });
   } else if (typeof arg1 === "object") {
     data = <RawSnapshotData>arg1;

@@ -21,8 +21,8 @@
   "homepage": "https://github.com/SrTobi/v8-heapsnapshot",
   "dependencies": {
     "@types/node": "^18.11.10",
-    "@types/oboe": "^2.1.1",
-    "oboe": "^2.1.5"
+    "@types/stream-json": "^1.7.8",
+    "stream-json": "^1.9.1"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
