@@ -1,3 +1,8 @@
+# !!! Archived !!!
+
+This package is not updated any more and I marked all versions on npm as deprecated.
+If you want to continue this crate feel free to fork this.
+
 # v8-heapsnapshot
 A npm module to parse and work with v8's heapsnapshots.
 
